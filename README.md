@@ -1,5 +1,10 @@
 # relaxy
 
+Aplique uma regra com um simples temporizador de modo que você habitue o comportamento de seus olhos,
+e assim evitar problemas na visão. Descanse sua vista sem parar o seu tempo de uso.
+
+- Veja mais sobre a regra [20-20-20](https://lenscope.com.br/blog/regra-20-20-20/).
+
 An Electron application with React and TypeScript
 
 ## Recommended IDE Setup
