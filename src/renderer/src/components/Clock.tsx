@@ -15,7 +15,7 @@ export default function Clock({ isOverlay }: Props): JSX.Element {
   const [isEditing, setIsEditing] = useState(false)
   const [isActive, setIsActive] = useState(false)
   const { useTime, restTime, autoPlay, reset } = useClock()
-  const [activeTime, setActiveTime] = useState(useTime)
+  const [activeTime, setActiveTime] = useState<[number]>([useTime])
   const [used, setUsed] = useState(false)
   const [rested, setRested] = useState(false)
   const dingSound = useRef(new Audio(ding))
@@ -25,26 +25,35 @@ export default function Clock({ isOverlay }: Props): JSX.Element {
     if (!used) {
       dingSound.current.play()
       setUsed(true)
-      setActiveTime(restTime)
+      setActiveTime([restTime])
       !autoPlay && setIsActive(false)
     } else if (!rested) {
       dongSound.current.play()
       if (reset) {
-        setActiveTime(useTime)
+        setActiveTime([useTime])
         setUsed(false)
       } else {
-        setActiveTime(0)
+        setActiveTime([0])
         setRested(true)
       }
       !autoPlay && setIsActive(false)
     }
   }, [used, rested, restTime, useTime])
 
+  const handleStopCount = useCallback(() => {
+    setIsActive(false)
+    if (!used) {
+      setActiveTime([useTime])
+    } else if (!rested) {
+      setActiveTime([restTime])
+    }
+  }, [useTime, used, restTime, rested])
+
   const handleSubmitForm = useCallback(() => {
     setIsEditing(false)
     setUsed(false)
     setRested(false)
-    setActiveTime(useTime)
+    setActiveTime([useTime])
   }, [useTime])
 
   return (
@@ -74,15 +83,7 @@ export default function Clock({ isOverlay }: Props): JSX.Element {
                 <button title="Pausar" className="p-1" onClick={() => setIsActive(false)}>
                   <Pause className="size-6 text-yellow-200" />
                 </button>
-                <button
-                  title="Encerrar"
-                  className="p-1"
-                  onClick={() => {
-                    setIsActive(false)
-                    setActiveTime(0)
-                    dongSound.current.play()
-                  }}
-                >
+                <button title="Parar" className="p-1" onClick={handleStopCount}>
                   <Square className="size-6 text-red-300" />
                 </button>
               </Fragment>

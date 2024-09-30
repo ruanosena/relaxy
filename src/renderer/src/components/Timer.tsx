@@ -2,7 +2,7 @@ import { cn } from '@renderer/lib/utils'
 import { HTMLAttributes, useEffect, useState } from 'react'
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
-  attachedTime: number
+  attachedTime: [number]
   onFinish: () => void
   isPaused?: boolean
 }
@@ -17,7 +17,7 @@ export default function Timer({
   const [count, setCount] = useState(0)
 
   useEffect(() => {
-    setCount(attachedTime)
+    setCount(attachedTime[0])
   }, [attachedTime])
 
   useEffect(() => {

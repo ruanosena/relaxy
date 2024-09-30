@@ -20,6 +20,7 @@ function createWindow(): void {
     }
   })
 
+  // TODO: add hotkey play/pause
   const toggleOverlayHotkey = 'CmdOrCtrl+6'
   let isOverlayOn = false
 
