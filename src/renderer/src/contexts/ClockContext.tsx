@@ -7,6 +7,10 @@ interface ClockContextData {
   setHours: (hours: number) => void
   setMinutes: (minutes: number) => void
   setRest: (seconds: number) => void
+  autoPlay: boolean
+  setAutoPlay: (value: string) => void
+  reset: boolean
+  setReset: (value: string) => void
 }
 
 const ClockContext = createContext({} as ClockContextData)
@@ -18,6 +22,16 @@ interface ClockContextProps {
 export function ClockProvider({ children }: ClockContextProps): JSX.Element {
   const [useTime, setUseTime] = useState(DEFAULT_TIMER_MINUTES_IN_SECONDS * 60)
   const [restTime, setRestTime] = useState(DEFAULT_TIMER_MINUTES_IN_SECONDS)
+  const [reset, _setReset] = useState(true)
+  const [autoPlay, _setAutoPlay] = useState(false)
+
+  const setReset = useCallback((value: string) => {
+    _setReset(value === 'true' ? false : true)
+  }, [])
+
+  const setAutoPlay = useCallback((value: string) => {
+    _setAutoPlay(value === 'true' ? false : true)
+  }, [])
 
   const maxRestTime = useCallback((time: number) => {
     setRestTime(Math.max(20, time))
@@ -48,7 +62,19 @@ export function ClockProvider({ children }: ClockContextProps): JSX.Element {
   const setRest = useCallback((time: number) => setRestTime(time), [])
 
   return (
-    <ClockContext.Provider value={{ useTime, restTime, setHours, setMinutes, setRest }}>
+    <ClockContext.Provider
+      value={{
+        useTime,
+        restTime,
+        setHours,
+        setMinutes,
+        setRest,
+        autoPlay,
+        setAutoPlay,
+        reset,
+        setReset
+      }}
+    >
       {children}
     </ClockContext.Provider>
   )

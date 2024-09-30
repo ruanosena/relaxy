@@ -14,7 +14,7 @@ interface Props {
 export default function Clock({ isOverlay }: Props): JSX.Element {
   const [isEditing, setIsEditing] = useState(false)
   const [isActive, setIsActive] = useState(false)
-  const { useTime, restTime } = useClock()
+  const { useTime, restTime, autoPlay, reset } = useClock()
   const [activeTime, setActiveTime] = useState(useTime)
   const [used, setUsed] = useState(false)
   const [rested, setRested] = useState(false)
@@ -26,16 +26,19 @@ export default function Clock({ isOverlay }: Props): JSX.Element {
       dingSound.current.play()
       setUsed(true)
       setActiveTime(restTime)
-      // TODO: add opção de autoplay
-      setIsActive(false)
+      !autoPlay && setIsActive(false)
     } else if (!rested) {
       dongSound.current.play()
-      setRested(true)
-      setActiveTime(0)
-      setIsActive(false)
-      // TODO: add opção de autoreset
+      if (reset) {
+        setActiveTime(useTime)
+        setUsed(false)
+      } else {
+        setActiveTime(0)
+        setRested(true)
+      }
+      !autoPlay && setIsActive(false)
     }
-  }, [used, rested, restTime])
+  }, [used, rested, restTime, useTime])
 
   const handleSubmitForm = useCallback(() => {
     setIsEditing(false)

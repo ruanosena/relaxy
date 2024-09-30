@@ -22,10 +22,11 @@ export default function InputField({
   }, [])
 
   return (
-    <div className="flex items-baseline justify-end gap-x-2 px-2">
-      <label htmlFor={id} className="block text-lg font-medium leading-6 text-gray-300">
-        {label}:
-      </label>
+    <label
+      htmlFor={id}
+      className="flex cursor-pointer items-baseline justify-end gap-x-2 px-2 text-lg font-medium leading-6 text-gray-300"
+    >
+      {label}:
       <div className="relative mt-2 rounded-md shadow-sm">
         {prefixNode && (
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
@@ -43,6 +44,6 @@ export default function InputField({
           onChange={handleInputChange}
         />
       </div>
-    </div>
+    </label>
   )
 }
