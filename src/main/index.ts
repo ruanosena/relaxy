@@ -32,6 +32,24 @@ function createWindow(): void {
     console.log('overlay', isOverlayOn)
   })
 
+  const playPauseHotkey = 'MediaPlayPause'
+
+  globalShortcut.register(playPauseHotkey, () => {
+    mainWindow.webContents.send('play-pause')
+  })
+
+  const advanceHotkey = 'MediaNextTrack'
+
+  globalShortcut.register(advanceHotkey, () => {
+    mainWindow.webContents.send('advance')
+  })
+
+  const stopHotkey = 'MediaStop'
+
+  globalShortcut.register(stopHotkey, () => {
+    mainWindow.webContents.send('stop')
+  })
+
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
   })
