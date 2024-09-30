@@ -5,3 +5,7 @@
 html {
   @apply font-serif;
 }
+
+#clock-buttons button:hover {
+  @apply scale-125;
+}

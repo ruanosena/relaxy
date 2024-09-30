@@ -1,0 +1,1 @@
+export const DEFAULT_TIMER_MINUTES_IN_SECONDS = 20

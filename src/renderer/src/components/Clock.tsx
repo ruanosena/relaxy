@@ -1,139 +1,83 @@
-import {
-  Check,
-  Clock as ClockIcon,
-  Eye,
-  FastForward,
-  Hourglass,
-  Pause,
-  Play,
-  Settings,
-  Square
-} from 'lucide-react'
-import InputField from './InputField'
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { FastForward, Pause, Play, Settings, Square } from 'lucide-react'
+import { Fragment, useCallback, useRef, useState } from 'react'
 import ding from '../assets/sounds/ding-sound.mp3'
+import dong from '../assets/sounds/dong-sound.mp3'
+import { cn } from '@renderer/lib/utils'
+import Timer from './Timer'
+import Form from './Form'
+import { useClock } from '@renderer/contexts/ClockContext'
 
 interface Props {
   isOverlay: boolean
 }
 
 export default function Clock({ isOverlay }: Props): JSX.Element {
-  const [isEditing, setIsEditing] = useState(true)
-  const [time, setTime] = useState(20 * 60)
-  const [restTime, setRestTime] = useState(20)
+  const [isEditing, setIsEditing] = useState(false)
   const [isActive, setIsActive] = useState(false)
-  // const [activeTime, setActiveTime] = useState()
-  const sound = useRef(new Audio(ding))
+  const { useTime, restTime } = useClock()
+  const [activeTime, setActiveTime] = useState(useTime)
+  const [used, setUsed] = useState(false)
+  const [rested, setRested] = useState(false)
+  const dingSound = useRef(new Audio(ding))
+  const dongSound = useRef(new Audio(dong))
 
-  const maxRestTime = useCallback((time) => {
-    setRestTime(Math.max(20, time))
-  }, [])
-
-  const setHours = useCallback(
-    (hours: number) => {
-      setTime((prevTime) => {
-        const minutesSlice = prevTime % 3600
-        maxRestTime(hours * 60 + Math.trunc(minutesSlice / 60))
-        return hours * 3600 + minutesSlice
-      })
-    },
-    [maxRestTime]
-  )
-
-  const setMinutes = useCallback(
-    (minutes: number) => {
-      setTime((prevTime) => {
-        const hours = Math.trunc(prevTime / 3600)
-        maxRestTime(hours * 60 + minutes)
-        return hours * 3600 + minutes * 60
-      })
-    },
-    [maxRestTime]
-  )
-
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | undefined
-
-    if (isActive) {
-      intervalId = setInterval(() => {
-        if (time > 0) {
-          setTime(time - 1)
-        } else {
-          sound.current.play()
-          clearInterval(intervalId)
-          setIsActive(false)
-        }
-      }, 1000)
-    } else {
-      clearInterval(intervalId)
+  const handleFinishCount = useCallback(() => {
+    if (!used) {
+      dingSound.current.play()
+      setUsed(true)
+      setActiveTime(restTime)
+      // TODO: add opção de autoplay
+      setIsActive(false)
+    } else if (!rested) {
+      dongSound.current.play()
+      setRested(true)
+      setActiveTime(0)
+      setIsActive(false)
+      // TODO: add opção de autoreset
     }
+  }, [used, rested, restTime])
 
-    return function cleanup(): void {
-      // executado a cada re-render
-      clearInterval(intervalId)
-    }
-  }, [isActive, time])
+  const handleSubmitForm = useCallback(() => {
+    setIsEditing(false)
+    setUsed(false)
+    setRested(false)
+    setActiveTime(useTime)
+  }, [useTime])
 
   return (
     <Fragment>
       {isEditing ? (
-        <div className="flex flex-col">
-          <InputField
-            label="Horas"
-            prefixNode={<Hourglass />}
-            value={Math.trunc(time / 3600)}
-            onChange={(event) => setHours(parseInt(event.target.value))}
-          />
-          <InputField
-            label="Minutos"
-            prefixNode={<ClockIcon />}
-            value={Math.trunc(time % 3600) / 60}
-            onChange={(event) => setMinutes(parseInt(event.target.value))}
-          />
-          <InputField
-            label="Descanso"
-            prefixNode={<Eye />}
-            value={restTime}
-            onChange={(event) => setRestTime(parseInt(event.target.value))}
-          />
-          <button
-            className="mx-2 my-2 flex justify-center rounded-xl bg-orange-500 py-1 text-gray-700"
-            onClick={() => time && setIsEditing(false)}
-          >
-            <Check />
-          </button>
-        </div>
+        <Form onSubmitForm={handleSubmitForm} />
       ) : (
         <Fragment>
-          <div className="flex justify-center">
-            <h1 className="text-5xl font-semibold text-indigo-400">
-              {Math.trunc(time / 3600)
-                .toString()
-                .padStart(2, '0')}
-              :
-              {Math.trunc((time % 3600) / 60)
-                .toString()
-                .padStart(2, '0')}
-              :
-              {Math.trunc(time % 60)
-                .toString()
-                .padStart(2, '0')}
-            </h1>
-          </div>
+          <Timer
+            className={cn({
+              'text-indigo-400': !!activeTime && !used,
+              'text-orange-400': !!activeTime && used && !rested
+            })}
+            attachedTime={activeTime}
+            onFinish={handleFinishCount}
+            isPaused={!isActive}
+          />
+
           <div
-            id="timer-buttons"
-            className="flex justify-around bg-black/10 py-0.5 text-gray-400/65"
+            id="clock-buttons"
+            className={cn('flex justify-around bg-black/10 py-0.5 text-gray-400/65', {
+              hidden: isOverlay
+            })}
           >
             {isActive ? (
               <Fragment>
-                <button className="p-1" onClick={() => setIsActive(false)}>
+                <button title="Pausar" className="p-1" onClick={() => setIsActive(false)}>
                   <Pause className="size-6 text-yellow-200" />
                 </button>
                 <button
+                  title="Encerrar"
                   className="p-1"
                   onClick={() => {
                     setIsActive(false)
-                    setTime(0)
+                    setActiveTime(0)
+                    dongSound.current.play()
                   }}
                 >
                   <Square className="size-6 text-red-300" />
@@ -141,14 +85,22 @@ export default function Clock({ isOverlay }: Props): JSX.Element {
               </Fragment>
             ) : (
               <Fragment>
-                <button className="p-1" onClick={() => setIsEditing(true)}>
-                  <Settings className="size-6" />
+                <button title="Configurar" className="p-1" onClick={() => setIsEditing(true)}>
+                  <Settings className={cn('size-6', { 'text-white/80': !activeTime })} />
                 </button>
-                <button className="p-1" onClick={() => setIsActive(true)}>
-                  <Play className="size-6 text-green-300" />
+                <button
+                  title="Play"
+                  className="p-1"
+                  onClick={() => activeTime && setIsActive(true)}
+                >
+                  <Play className={cn('size-6', { 'text-green-300': !!activeTime })} />
                 </button>
-                <button className="p-1">
-                  <FastForward className="size-6 text-orange-300" />
+                <button
+                  title="Avançar"
+                  className="p-1"
+                  onClick={() => activeTime && handleFinishCount()}
+                >
+                  <FastForward className={cn('size-6', { 'text-orange-300': !!activeTime })} />
                 </button>
               </Fragment>
             )}
